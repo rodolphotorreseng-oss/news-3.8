@@ -1,16 +1,89 @@
+
 <!doctype html>
 <html lang="pt-BR">
-<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Central Operacional News (CON)</title><link rel="icon" href="assets/favicon.svg"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/chart.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script></head>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Central Operacional News (CON) - v3.6_PRO_LOGIN</title>
+<link rel="icon" href="./assets/favicon.svg">
+<link rel="stylesheet" href="./assets/style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+</head>
 <body>
-<script>if(!sessionStorage.getItem('congrl_auth')||sessionStorage.getItem('congrl_auth')!=='adm'){window.location.href='login.html';}</script>
-<header class="topbar"><div class="brand"><div class="logo">NEWS</div><div class="title">Central Operacional News (CON)</div></div><div class="controls"><input id="searchInput" placeholder="Buscar notícias (ex: roubo, BR-101, cidade)"/><button id="btnUpdate" class="btn">Atualizar</button><button id="btnCSV" class="btn">Baixar CSV</button><button id="btnPDF" class="btn">PDF</button><button id="fontesBtn" class="btn">📰 Fontes</button><button id="fontesBuscaBtn" class="btn">🔍 Fontes de Busca</button><button id="ajudaBtn" class="btn">❓ Ajuda</button><div class="datetime" id="now">-</div></div></header>
-<div class="filters"><div class="filter-row"><label>Notícias<select id="typeSelect"><option value="">Todas</option><option>Acidente</option><option>Interdição</option><option>Trânsito</option><option>Roubo</option><option>Furto</option><option>Portos/Marítimos</option><option>Sindicatos/Greves</option><option>Internacional</option><option>Logística</option></select></label><label>Região<select id="regionSelect"><option value="">Todas</option><option>Norte</option><option>Nordeste</option><option>Centro-Oeste</option><option>Sudeste</option><option>Sul</option></select></label><label>Rodovia Federal<select id="rodoviaSelect"><option value="">Todas</option></select></label></div></div>
-<main class="container"><section class="left"><div class="cards" id="cardsRow"><div class="card stat card-acc">🚗 Acidente: <span id="statAcc">0</span></div><div class="card stat card-int">🚧 Interdição/Trânsito: <span id="statInt">0</span></div><div class="card stat card-roubo">🚨 Roubo: <span id="statRoubo">0</span></div><div class="card stat card-furto">🟢 Furto: <span id="statFurto">0</span></div></div><div class="graficos-container"><div class="grafico"><canvas id="chartTypes" width="400" height="250"></canvas></div><div class="grafico"><canvas id="chartRegions" width="400" height="250"></canvas></div></div><div class="mapcard"><div class="mapheader"><h3>Mapa — ocorrências</h3><button id="expandMap" class="btn small">⛶</button></div><div id="map" style="height:360px;width:100%;"></div></div><h2 class="news-title">Notícias — <span id="lastFetch">-</span></h2><div id="newsList" class="news-list"></div></section><aside class="right"><div class="card weather"><h3>Previsão — São Paulo</h3><div id="weather">Carregando...</div></div><div class="card concessionarias"><h3>Concessionárias</h3><div id="concessList">Carregando...</div></div><div class="card phones"><h3>Telefones úteis</h3><ul><li>Corpo de Bombeiros — 193</li><li>Polícia Civil — 181</li><li>Polícia Militar — 190</li><li>SAMU — 192</li><li>PRF — 191</li><li>Defesa Civil — 199</li></ul></div></aside></main><footer class="footer">TORRES - Central Operacional News (CON)</footer>
+<!-- Login screen -->
+<div id="login-screen" class="login-screen">
+  <div class="login-box">
+    <h1>TORRES - Central Operacional News (CON)</h1>
+    <input id="user" placeholder="Login" autocomplete="username">
+    <input id="pass" type="password" placeholder="Senha" autocomplete="current-password">
+    <button id="loginBtn">Entrar</button>
+    <p id="loginMsg" class="msg"></p>
+  </div>
+</div>
 
-<div id="ajudaModal" class="modal"><div class="modal-content"><span class="close" data-for="ajudaModal">&times;</span><h2>Ajuda — Central Operacional News (CON)</h2><div class="modal-body"><p><strong>Campo de Busca:</strong> Digite palavras-chave como "acidente", "roubo" ou "BR-381" para filtrar notícias.</p><p><strong>Filtros:</strong> As listas de "Notícias", "Região" e "Rodovia" atualizam automaticamente sem precisar clicar em atualizar.</p><p><strong>Gráficos:</strong> Gráfico de barras mostra total por tipo; gráfico de pizza mostra distribuição por região.</p><p><strong>Mapa:</strong> Exibe pontos das ocorrências. Clique em uma notícia para centralizar o mapa no ponto correspondente.</p><p><strong>Export:</strong> Use "Baixar CSV" ou "PDF" para salvar relatórios.</p></div><button class="btn-close" data-for="ajudaModal">Fechar</button></div></div>
+<!-- App (hidden until login) -->
+<div id="app" class="hidden">
+  <header class="topbar">
+    <div class="brand"><div class="logo">NEWS</div><div class="title">Central Operacional News (CON)</div></div>
+    <div class="controls">
+      <input id="search" placeholder="buscar: ex 'BR-381' ou 'roubo'"/>
+      <button id="refreshBtn">Atualizar</button>
+      <button id="csvBtn">Baixar CSV</button>
+      <button id="pdfBtn">PDF</button>
+      <button id="fontesBtn">📰 Fontes</button>
+      <button id="fontesBuscaBtn">🔍 Fontes de Busca</button>
+      <button id="ajudaBtn">❓ Ajuda</button>
+      <div id="now" class="datetime">-</div>
+    </div>
+  </header>
+
+  <div class="filters">
+    <select id="typeFilter"><option value="">Todas</option><option>Acidente</option><option>Interdição</option><option>Trânsito</option><option>Roubo</option><option>Furto</option></select>
+    <select id="regionFilter"><option value="">Todas</option><option>Sudeste</option><option>Sul</option><option>Centro-Oeste</option><option>Norte</option><option>Nordeste</option></select>
+    <select id="roadFilter"><option value="">Todas</option></select>
+  </div>
+
+  <main class="container">
+    <section class="left">
+      <div class="cards" id="cardsRow">
+        <div class="card stat card-acc">🚗 Acidente: <span id="statAcc">0</span></div>
+        <div class="card stat card-int">🚧 Interdição/Trânsito: <span id="statInt">0</span></div>
+        <div class="card stat card-roubo">🚨 Roubo: <span id="statRoubo">0</span></div>
+        <div class="card stat card-furto">🟢 Furto: <span id="statFurto">0</span></div>
+      </div>
+
+      <div class="graficos-container">
+        <div class="grafico"><canvas id="chartTypes"></canvas></div>
+        <div class="grafico"><canvas id="chartRegions"></canvas></div>
+      </div>
+
+      <div class="mapcard">
+        <div class="mapheader"><h3>Mapa — ocorrências</h3><button id="expandMap" class="btn small">⛶</button></div>
+        <div id="map" style="height:360px;width:100%;"></div>
+      </div>
+
+      <h2 class="news-title">Notícias — <span id="lastFetch">-</span></h2>
+      <div id="newsList" class="news-list"></div>
+    </section>
+
+    <aside class="right">
+      <div class="card weather"><h3>Previsão — São Paulo</h3><div id="weather">Carregando...</div></div>
+      <div class="card concessionarias"><h3>Concessionárias</h3><div id="concessList">Carregando...</div></div>
+      <div class="card phones"><h3>Telefones úteis</h3><ul><li>Corpo de Bombeiros — 193</li><li>Polícia Civil — 181</li><li>Polícia Militar — 190</li><li>SAMU — 192</li><li>PRF — 191</li><li>Defesa Civil — 199</li></ul></div>
+    </aside>
+  </main>
+
+  <footer class="footer">TORRES - Central Operacional News (CON)</footer>
+</div>
+
+<!-- Modals -->
+<div id="ajudaModal" class="modal"><div class="modal-content"><span class="close" data-for="ajudaModal">&times;</span><h2>Ajuda</h2><div class="modal-body"><p>Use busca, filtros e clique em notícias para centralizar o mapa.</p></div><button class="btn-close" data-for="ajudaModal">Fechar</button></div></div>
 
 <div id="fontesModal" class="modal"><div class="modal-content"><span class="close" data-for="fontesModal">&times;</span><h2>Fontes (última coleta)</h2><div id="fontesList" class="modal-body"></div><button class="btn-close" data-for="fontesModal">Fechar</button></div></div>
 
-<div id="fontesBuscaModal" class="modal"><div class="modal-content"><span class="close" data-for="fontesBuscaModal">&times;</span><h2>Fontes de Busca (fixas)</h2><div class="modal-body"><ul><li>Google News (BR - busca por palavras-chave)</li><li>G1 (todas as regiões)</li><li>R7</li><li>PRF</li><li>DNIT</li><li>ClimaTempo / Open-Meteo</li><li>Concessionárias (CCR, Arteris, EcoRodovias, ViaSul, etc.)</li><li>Agência Brasil</li></ul></div><button class="btn-close" data-for="fontesBuscaModal">Fechar</button></div></div>
+<div id="fontesBuscaModal" class="modal"><div class="modal-content"><span class="close" data-for="fontesBuscaModal">&times;</span><h2>Fontes de Busca (fixas)</h2><div class="modal-body"><ul><li>Google News</li><li>G1</li><li>R7</li><li>PRF</li><li>DNIT</li><li>ClimaTempo</li><li>Concessionárias</li></ul></div><button class="btn-close" data-for="fontesBuscaModal">Fechar</button></div></div>
 
-<script src="app_v3.7.js"></script></body></html>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script defer src="./assets/app.min.js"></script>
+</body>
+</html>
